@@ -61,7 +61,6 @@ describe("MinaTokensAPI for NFT", () => {
     ).data;
     console.log("NFT info:", info);
   });
-  return;
 
   it(`should launch NFT collection`, async () => {
     console.log("creator:", creator.publicKey);
