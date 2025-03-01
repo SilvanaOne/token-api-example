@@ -1,0 +1,39 @@
+{
+  "name": "token-api-example",
+  "version": "0.2.0",
+  "author": "DFST",
+  "type": "module",
+  "scripts": {
+    "token": "jest tests/token.test.ts",
+    "nft": "jest tests/nft.test.ts"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.13.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.6",
+    "typescript": "^5.7.3"
+  },
+  "packageManager": "yarn@4.7.0",
+  "dependencies": {
+    "@silvana-one/api": "^0.2.0",
+    "mina-signer": "^3.0.7",
+    "tslib": "^2.8.1",
+    "unique-names-generator": "^4.7.1"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "slowTestThreshold": 1500,
+    "testTimeout": 108000000,
+    "bail": true,
+    "verbose": true,
+    "roots": [
+      "tests"
+    ],
+    "setupFilesAfterEnv": [
+      "./jest-config.ts"
+    ]
+  }
+}

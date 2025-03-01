@@ -1,0 +1,12 @@
+env.json
+.DS_Store
+yarn-error.log
+node_modules/
+dist/
+cache/
+.yarn/
+.pnp.cjs
+.pnp.loader.mjs
+.vscode/
+.zkcloudworker/
+data/
