@@ -735,12 +735,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@silvana-one/api@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@silvana-one/api@npm:0.2.0"
+"@silvana-one/api@npm:^0.2.8":
+  version: 0.2.8
+  resolution: "@silvana-one/api@npm:0.2.8"
   dependencies:
     "@hey-api/client-fetch": "npm:^0.8.2"
-  checksum: 10c0/ed23f39d5a2b2ebea11bfcec62c4a823eba87ade291c14931ca6fdb0f1b724ee0cea5fb9bf9f1741e25f59ca93e2c04793c811c66c3ebc4f1fafc48c3085f80e
+  checksum: 10c0/cff7104bb3d531f61670c174992980c63c4c8cce493e46719b146aa81ef7a47e30e87c938a31674c7e128cd71e186a4eddac4599bfc19b80cf3dde9a4b372898
   languageName: node
   linkType: hard
 
@@ -854,7 +854,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^22.13.5":
+"@types/node@npm:*, @types/node@npm:^22.13.8":
   version: 22.13.8
   resolution: "@types/node@npm:22.13.8"
   dependencies:
@@ -3305,14 +3305,14 @@ __metadata:
   resolution: "token-api-example@workspace:."
   dependencies:
     "@jest/globals": "npm:^29.7.0"
-    "@silvana-one/api": "npm:^0.2.0"
+    "@silvana-one/api": "npm:^0.2.8"
     "@types/jest": "npm:^29.5.14"
-    "@types/node": "npm:^22.13.5"
+    "@types/node": "npm:^22.13.8"
     jest: "npm:^29.7.0"
     mina-signer: "npm:^3.0.7"
     ts-jest: "npm:^29.2.6"
     tslib: "npm:^2.8.1"
-    typescript: "npm:^5.7.3"
+    typescript: "npm:^5.8.2"
     unique-names-generator: "npm:^4.7.1"
   languageName: unknown
   linkType: soft
@@ -3375,7 +3375,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.7.3":
+"typescript@npm:^5.8.2":
   version: 5.8.2
   resolution: "typescript@npm:5.8.2"
   bin:
@@ -3385,7 +3385,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.7.3#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.8.2#optional!builtin<compat/typescript>":
   version: 5.8.2
   resolution: "typescript@patch:typescript@npm%3A5.8.2#optional!builtin<compat/typescript>::version=5.8.2&hash=5786d5"
   bin:

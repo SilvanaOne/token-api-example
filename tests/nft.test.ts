@@ -17,7 +17,7 @@ API: https://docs.zkcloudworker.com/OpenAPI/launch-nft-collection
 
 type Chain = "zeko" | "devnet" | "mainnet";
 const chain: Chain = "devnet" as Chain;
-const soulBound = false as boolean;
+const soulBound = false as boolean; // set to true to mint soulbound NFTs
 
 api.config({
   apiKey: API_KEY,
@@ -44,9 +44,18 @@ describe("MinaTokensAPI for NFT", () => {
   const users = TEST_ACCOUNTS;
   const creator = users[0];
   const nftHolders = users.slice(1);
+  const nftAddresses: string[] = [];
 
-  let step: "started" | "launched" | "minted" | "transferred" | "batch" =
-    "started";
+  let step:
+    | "started"
+    | "launched"
+    | "minted"
+    | "approved"
+    | "sell"
+    | "bought"
+    | "transferred"
+    | "batchMint"
+    | "batchSell" = "started";
 
   it(`should get NFT info`, async () => {
     const info = (
@@ -302,7 +311,7 @@ describe("MinaTokensAPI for NFT", () => {
     step = "minted";
   });
 
-  it(`should transfer NFT`, async () => {
+  it(`should grant approval`, async () => {
     expect(collectionAddress).toBeDefined();
     if (!collectionAddress) {
       throw new Error("NFT collection is not deployed");
@@ -311,19 +320,18 @@ describe("MinaTokensAPI for NFT", () => {
       throw new Error("NFT is not minted");
     }
     expect(step).toBe("minted");
-    console.log(`Transferring NFT...`);
+    console.log(`Granting approval...`);
 
     try {
       const tx = (
-        await api.transferNft({
+        await api.approveNft({
           body: {
-            txType: "nft:transfer",
+            txType: "nft:approve",
             sender: creator.publicKey,
             collectionAddress,
             nftAddress,
-            nftTransferParams: {
-              from: creator.publicKey,
-              to: nftHolders[0].publicKey,
+            nftApproveParams: {
+              to: nftHolders[3].publicKey,
             },
           },
         })
@@ -368,10 +376,251 @@ describe("MinaTokensAPI for NFT", () => {
           },
         })
       ).data;
+      console.log("Approved:", info?.nft.approved);
+      console.log("Approved vk:", info?.nft.approvedVerificationKeyHash);
+      console.log("Approved type:", info?.nft.approvedType);
+      console.log("Price:", info?.nft.price);
+      expect(info?.nft.approved).toBe(nftHolders[3].publicKey);
+    } catch (e: any) {
+      if (soulBound) {
+        console.log("Soul bound NFT, approve failed as expected");
+      } else {
+        throw e;
+      }
+    }
+    step = "approved";
+  });
+
+  it(`should sell NFT`, async () => {
+    expect(collectionAddress).toBeDefined();
+    if (!collectionAddress) {
+      throw new Error("NFT collection is not deployed");
+    }
+    if (!nftAddress) {
+      throw new Error("NFT is not minted");
+    }
+    expect(step).toBe("approved");
+    console.log(`Selling NFT...`);
+
+    try {
+      const tx = (
+        await api.sellNft({
+          body: {
+            txType: "nft:sell",
+            sender: creator.publicKey,
+            collectionAddress,
+            nftAddress,
+            nftSellParams: {
+              price: 10,
+            },
+          },
+        })
+      ).data;
+      if (!tx) throw new Error("No tx");
+
+      const proveTx = (
+        await api.prove({
+          body: {
+            tx,
+            signedData: JSON.stringify(
+              client.signTransaction(
+                tx.minaSignerPayload as any,
+                creator.privateKey
+              ).data
+            ),
+          },
+        })
+      ).data;
+
+      if (!proveTx?.jobId) throw new Error("No jobId");
+
+      const proofs = await api.waitForProofs(proveTx.jobId);
+      expect(proofs).toBeDefined();
+      if (!proofs) throw new Error("No proofs");
+      expect(proofs.length).toBe(1);
+      const hash = proofs[0];
+      expect(hash).toBeDefined();
+      if (!hash) return;
+      await api.waitForTransaction(hash);
+      await new Promise((resolve) => setTimeout(resolve, 30000));
+      const status = await api.txStatus({
+        body: { hash },
+      });
+      console.log("Tx status:", hash, status?.data);
+      expect(status?.data?.status).toBe("applied");
+      const info = (
+        await api.getNftInfo({
+          body: {
+            collectionAddress,
+            nftAddress,
+          },
+        })
+      ).data;
+      console.log("Approved:", info?.nft.approved);
+      console.log("Approved vk:", info?.nft.approvedVerificationKeyHash);
+      console.log("Approved type:", info?.nft.approvedType);
+      console.log("Price:", info?.nft.price);
+      expect(info?.nft.price).toBe(10);
+      expect(info?.nft.approved).not.toBe(nftHolders[3].publicKey);
+    } catch (e: any) {
+      if (soulBound) {
+        console.log("Soul bound NFT, sell failed as expected");
+      } else {
+        throw e;
+      }
+    }
+    step = "sell";
+  });
+
+  it(`should buy NFT`, async () => {
+    expect(collectionAddress).toBeDefined();
+    if (!collectionAddress) {
+      throw new Error("NFT collection is not deployed");
+    }
+    if (!nftAddress) {
+      throw new Error("NFT is not minted");
+    }
+    expect(step).toBe("sell");
+    console.log(`Buying NFT...`);
+
+    try {
+      const tx = (
+        await api.buyNft({
+          body: {
+            txType: "nft:buy",
+            sender: nftHolders[0].publicKey,
+            collectionAddress,
+            nftAddress,
+            nftBuyParams: {
+              buyer: nftHolders[0].publicKey,
+            },
+          },
+        })
+      ).data;
+      if (!tx) throw new Error("No tx");
+
+      const proveTx = (
+        await api.prove({
+          body: {
+            tx,
+            signedData: JSON.stringify(
+              client.signTransaction(
+                tx.minaSignerPayload as any,
+                nftHolders[0].privateKey
+              ).data
+            ),
+          },
+        })
+      ).data;
+
+      if (!proveTx?.jobId) throw new Error("No jobId");
+
+      const proofs = await api.waitForProofs(proveTx.jobId);
+      expect(proofs).toBeDefined();
+      if (!proofs) throw new Error("No proofs");
+      expect(proofs.length).toBe(1);
+      const hash = proofs[0];
+      expect(hash).toBeDefined();
+      if (!hash) return;
+      await api.waitForTransaction(hash);
+      await new Promise((resolve) => setTimeout(resolve, 30000));
+      const status = await api.txStatus({
+        body: { hash },
+      });
+      console.log("Tx status:", hash, status?.data);
+      expect(status?.data?.status).toBe("applied");
+      const info = (
+        await api.getNftInfo({
+          body: {
+            collectionAddress,
+            nftAddress,
+          },
+        })
+      ).data;
       console.log("Old owner:", creator.publicKey);
       console.log("New owner:", nftHolders[0].publicKey);
       console.log("NFT info:", info);
       expect(info?.nft.owner).toBe(nftHolders[0].publicKey);
+    } catch (e: any) {
+      if (soulBound) {
+        console.log("Soul bound NFT, buy failed as expected");
+      } else {
+        throw e;
+      }
+    }
+    step = "bought";
+  });
+
+  it(`should transfer NFT`, async () => {
+    expect(collectionAddress).toBeDefined();
+    if (!collectionAddress) {
+      throw new Error("NFT collection is not deployed");
+    }
+    if (!nftAddress) {
+      throw new Error("NFT is not minted");
+    }
+    expect(step).toBe("bought");
+    console.log(`Transferring NFT...`);
+
+    try {
+      const tx = (
+        await api.transferNft({
+          body: {
+            txType: "nft:transfer",
+            sender: nftHolders[0].publicKey,
+            collectionAddress,
+            nftAddress,
+            nftTransferParams: {
+              from: creator.publicKey,
+              to: nftHolders[1].publicKey,
+            },
+          },
+        })
+      ).data;
+      if (!tx) throw new Error("No tx");
+
+      const proveTx = (
+        await api.prove({
+          body: {
+            tx,
+            signedData: JSON.stringify(
+              client.signTransaction(
+                tx.minaSignerPayload as any,
+                nftHolders[0].privateKey
+              ).data
+            ),
+          },
+        })
+      ).data;
+
+      if (!proveTx?.jobId) throw new Error("No jobId");
+
+      const proofs = await api.waitForProofs(proveTx.jobId);
+      expect(proofs).toBeDefined();
+      if (!proofs) throw new Error("No proofs");
+      expect(proofs.length).toBe(1);
+      const hash = proofs[0];
+      expect(hash).toBeDefined();
+      if (!hash) return;
+      await api.waitForTransaction(hash);
+      await new Promise((resolve) => setTimeout(resolve, 30000));
+      const status = await api.txStatus({
+        body: { hash },
+      });
+      console.log("Tx status:", hash, status?.data);
+      expect(status?.data?.status).toBe("applied");
+      const info = (
+        await api.getNftInfo({
+          body: {
+            collectionAddress,
+            nftAddress,
+          },
+        })
+      ).data;
+      console.log("Old owner:", nftHolders[0].publicKey);
+      console.log("New owner:", nftHolders[1].publicKey);
+      console.log("NFT info:", info);
+      expect(info?.nft.owner).toBe(nftHolders[1].publicKey);
     } catch (e: any) {
       if (soulBound) {
         console.log("Soul bound NFT, transfer failed as expected");
@@ -405,7 +654,6 @@ describe("MinaTokensAPI for NFT", () => {
     if (!nonce) throw new Error("No nonce");
     const BATCH_SIZE = 3;
     const hashes: string[] = [];
-    const nftAddresses: string[] = [];
     for (let i = 0; i < BATCH_SIZE; i++) {
       const nftName = randomName();
       console.log(`Minting NFT ${nftName}...`);
@@ -535,6 +783,89 @@ describe("MinaTokensAPI for NFT", () => {
       console.log("NFT info:", info);
     }
 
-    step = "batch";
+    step = "batchMint";
+  });
+
+  (soulBound ? it.skip : it)(`should sell batch of NFTs`, async () => {
+    expect(collectionAddress).toBeDefined();
+    if (!collectionAddress) {
+      throw new Error("NFT collection is not deployed");
+    }
+    expect(step).toBe("batchMint");
+    console.log("Selling batch of NFTs...");
+    console.log(
+      "Batch NFT holders:",
+      nftHolders.slice(0, 3).map((t) => t.publicKey)
+    );
+    const BATCH_SIZE = 2;
+    const randomPrice = () => Math.floor(Math.random() * 10) * 10 + 10;
+    const hashes: string[] = [];
+    const prices = Array.from({ length: BATCH_SIZE }, randomPrice);
+    for (let i = 0; i < BATCH_SIZE; i++) {
+      const tx = (
+        await api.sellNft({
+          body: {
+            txType: "nft:sell",
+            sender: nftHolders[i].publicKey,
+            collectionAddress,
+            nftAddress: nftAddresses[i],
+            nftSellParams: {
+              price: prices[i],
+            },
+          },
+        })
+      ).data;
+      if (!tx) throw new Error("No tx");
+      const proveTx = (
+        await api.prove({
+          body: {
+            tx,
+            signedData: JSON.stringify(
+              client.signTransaction(
+                tx.minaSignerPayload as any,
+                nftHolders[i].privateKey
+              ).data
+            ),
+          },
+        })
+      ).data;
+
+      if (!proveTx?.jobId) throw new Error("No jobId");
+
+      const proofs = await api.waitForProofs(proveTx.jobId);
+      expect(proofs).toBeDefined();
+      if (!proofs) throw new Error("No proofs");
+      expect(proofs.length).toBe(1);
+      const hash = proofs[0];
+      console.log("Selling NFT tx hash:", hash);
+      expect(hash).toBeDefined();
+      if (!hash) return;
+      hashes.push(hash);
+    }
+    console.log("Waiting for batch of NFTs tx to be included in a block...");
+    for (const hash of hashes) {
+      await api.waitForTransaction(hash);
+      const status = await api.txStatus({
+        body: { hash },
+      });
+      console.log("Tx status:", hash, status?.data);
+      expect(status?.data?.status).toBe("applied");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 60000));
+    for (const nftAddress of nftAddresses) {
+      const info =
+        // IMPORTANT to call it after the tx is included into block to get NFT indexed on https://devnet.minanft.io/
+        (
+          await api.getNftInfo({
+            body: {
+              collectionAddress,
+              nftAddress,
+            },
+          })
+        ).data;
+      console.log("NFT info:", info);
+    }
+
+    step = "batchSell";
   });
 });
