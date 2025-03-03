@@ -735,12 +735,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@silvana-one/api@npm:^0.2.8":
-  version: 0.2.8
-  resolution: "@silvana-one/api@npm:0.2.8"
+"@silvana-one/api@npm:^0.2.10":
+  version: 0.2.10
+  resolution: "@silvana-one/api@npm:0.2.10"
   dependencies:
     "@hey-api/client-fetch": "npm:^0.8.2"
-  checksum: 10c0/cff7104bb3d531f61670c174992980c63c4c8cce493e46719b146aa81ef7a47e30e87c938a31674c7e128cd71e186a4eddac4599bfc19b80cf3dde9a4b372898
+  checksum: 10c0/337838ebaa400e8dae3200031be4d212d5706c8cd8bc0e45adab50dbec97072079d0d39f9f7e8c3608e820ba0661bd40e3552ad930e1bbfbf769b57f67ecfbfd
   languageName: node
   linkType: hard
 
@@ -854,12 +854,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^22.13.8":
+"@types/node@npm:*":
   version: 22.13.8
   resolution: "@types/node@npm:22.13.8"
   dependencies:
     undici-types: "npm:~6.20.0"
   checksum: 10c0/bfc92b734a9dce6ac5daee0a52feccdf5dcb3804d895e4bc5384e2f4644612b8801725cd03c8c3c0888fb5eeb16b875877ac44b77641e0196dc1a837b1c2a366
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.13.9":
+  version: 22.13.9
+  resolution: "@types/node@npm:22.13.9"
+  dependencies:
+    undici-types: "npm:~6.20.0"
+  checksum: 10c0/eb6acd04169a076631dcaab712128d492cd17a1b3f10daae4a377f3d439c860c3cd3e32f4ef221671f56183b976ac7c4089f4193457314a88675ead4663438a4
   languageName: node
   linkType: hard
 
@@ -3305,9 +3314,9 @@ __metadata:
   resolution: "token-api-example@workspace:."
   dependencies:
     "@jest/globals": "npm:^29.7.0"
-    "@silvana-one/api": "npm:^0.2.8"
+    "@silvana-one/api": "npm:^0.2.10"
     "@types/jest": "npm:^29.5.14"
-    "@types/node": "npm:^22.13.8"
+    "@types/node": "npm:^22.13.9"
     jest: "npm:^29.7.0"
     mina-signer: "npm:^3.0.7"
     ts-jest: "npm:^29.2.6"

@@ -4,7 +4,7 @@ import * as api from "@silvana-one/api";
 import { TEST_ACCOUNTS, API_KEY } from "../env.json";
 
 type Chain = "zeko" | "devnet" | "mainnet";
-const chain: Chain = "zeko" as Chain;
+const chain: Chain = "devnet" as Chain;
 const bondingCurve = true as boolean;
 const useWhitelists = false;
 
@@ -89,6 +89,26 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     const info = await api.getContractInfo({
       body: {
         address: exampleTokenAddress,
+      },
+    });
+    console.log(info?.data ? JSON.stringify(info.data, null, 2) : "No info");
+  });
+
+  it(`should get list of holders`, async () => {
+    console.log("Getting existing list of holders for", exampleTokenAddress);
+    const info = await api.getTokenHolders({
+      body: {
+        address: exampleTokenAddress,
+      },
+    });
+    console.log(info?.data ? JSON.stringify(info.data, null, 2) : "No info");
+  });
+
+  it(`should get list of transactions`, async () => {
+    console.log("Getting existing transactions for", exampleTokenAddress);
+    const info = await api.getTransactions({
+      body: {
+        tokenAddress: exampleTokenAddress,
       },
     });
     console.log(info?.data ? JSON.stringify(info.data, null, 2) : "No info");
