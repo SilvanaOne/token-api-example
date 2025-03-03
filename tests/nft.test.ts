@@ -571,7 +571,7 @@ describe("MinaTokensAPI for NFT", () => {
             collectionAddress,
             nftAddress,
             nftTransferParams: {
-              from: creator.publicKey,
+              from: nftHolders[0].publicKey,
               to: nftHolders[1].publicKey,
             },
           },
