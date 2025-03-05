@@ -735,12 +735,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@silvana-one/api@npm:^0.2.10":
-  version: 0.2.10
-  resolution: "@silvana-one/api@npm:0.2.10"
+"@silvana-one/api@npm:^0.2.11":
+  version: 0.2.11
+  resolution: "@silvana-one/api@npm:0.2.11"
   dependencies:
     "@hey-api/client-fetch": "npm:^0.8.2"
-  checksum: 10c0/337838ebaa400e8dae3200031be4d212d5706c8cd8bc0e45adab50dbec97072079d0d39f9f7e8c3608e820ba0661bd40e3552ad930e1bbfbf769b57f67ecfbfd
+  checksum: 10c0/c4c67d6c3e38ea496756fad75883c40668010ba76e4db733acab64be37cc9d1f004a89207adf0b0f027c5e20b120622ec2e724556b097310635a1f859ed5232d
   languageName: node
   linkType: hard
 
@@ -3314,7 +3314,7 @@ __metadata:
   resolution: "token-api-example@workspace:."
   dependencies:
     "@jest/globals": "npm:^29.7.0"
-    "@silvana-one/api": "npm:^0.2.10"
+    "@silvana-one/api": "npm:^0.2.11"
     "@types/jest": "npm:^29.5.14"
     "@types/node": "npm:^22.13.9"
     jest: "npm:^29.7.0"

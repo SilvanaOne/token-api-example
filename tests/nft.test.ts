@@ -16,7 +16,7 @@ API: https://docs.zkcloudworker.com/OpenAPI/launch-nft-collection
 */
 
 type Chain = "zeko" | "devnet" | "mainnet";
-const chain: Chain = "devnet" as Chain;
+const chain: Chain = "zeko" as Chain;
 const soulBound = false as boolean; // set to true to mint soulbound NFTs
 
 api.config({
@@ -35,8 +35,13 @@ const client = new Client({
 
 const exampleNftAddress =
   chain === "zeko"
-    ? "B62qnmnETnzpkEVvGQ6jE4PR3YVFY6ZEXxYXWvQPmxcZyJJtj9eGiD6"
-    : "B62qn25cKc4ipqJMCDSMENgsiFwL49vTdnsDXgWWKWFXQaY819rn848";
+    ? "B62qpeErx1XXMJae5Bu7Tjt4ie8V4ZCjwfJ8CEp4xsgC5sEa9dcdgJL"
+    : "B62qiwSqsfS8jGszg6HfGBzSe2CuQbnqGBVJcSvQncUJJrJSVwvMD8x";
+
+const exampleCollectionAddress =
+  chain === "zeko"
+    ? "B62qqhJUd1KhoYppyCyBxMKhGsdFQ2EyFmem6TykU3C7zHDvikMGBiX"
+    : "B62qrfuCkQpEJxgLnACWAp7q2hMVYgneQn8FHMt23JUX87rjXjVuyyK";
 
 describe("MinaTokensAPI for NFT", () => {
   let collectionAddress: string | undefined = undefined;
@@ -61,10 +66,8 @@ describe("MinaTokensAPI for NFT", () => {
     const info = (
       await api.getNftInfo({
         body: {
-          nftAddress: "B62qiwSqsfS8jGszg6HfGBzSe2CuQbnqGBVJcSvQncUJJrJSVwvMD8x",
-          collectionAddress:
-            "B62qrfuCkQpEJxgLnACWAp7q2hMVYgneQn8FHMt23JUX87rjXjVuyyK",
-          // "B62qjRPTy8u1WmqvesxC6VhixvwCzCAFjDjmMwm1LB5viEDTfAWbfz9",
+          nftAddress: exampleNftAddress,
+          collectionAddress: exampleCollectionAddress,
         },
       })
     ).data;
