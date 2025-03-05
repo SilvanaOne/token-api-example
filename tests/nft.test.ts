@@ -177,7 +177,7 @@ describe("MinaTokensAPI for NFT", () => {
     expect(hash).toBeDefined();
     if (!hash) throw new Error("No hash");
     await api.waitForTransaction(hash);
-    await new Promise((resolve) => setTimeout(resolve, 30000));
+    await sleep(30000);
     const info = (
       await api.getNftInfo({
         body: {
@@ -295,7 +295,7 @@ describe("MinaTokensAPI for NFT", () => {
     expect(hash).toBeDefined();
     if (!hash) return;
     await api.waitForTransaction(hash);
-    await new Promise((resolve) => setTimeout(resolve, 30000));
+    await sleep(30000);
     const status = await api.txStatus({
       body: { hash },
     });
@@ -371,6 +371,7 @@ describe("MinaTokensAPI for NFT", () => {
       });
       console.log("Tx status:", hash, status?.data);
       expect(status?.data?.status).toBe("applied");
+      await sleep(30000);
       const info = (
         await api.getNftInfo({
           body: {
@@ -445,7 +446,7 @@ describe("MinaTokensAPI for NFT", () => {
       expect(hash).toBeDefined();
       if (!hash) return;
       await api.waitForTransaction(hash);
-      await new Promise((resolve) => setTimeout(resolve, 30000));
+      await sleep(30000);
       const status = await api.txStatus({
         body: { hash },
       });
@@ -526,7 +527,7 @@ describe("MinaTokensAPI for NFT", () => {
       expect(hash).toBeDefined();
       if (!hash) return;
       await api.waitForTransaction(hash);
-      await new Promise((resolve) => setTimeout(resolve, 30000));
+      await sleep(30000);
       const status = await api.txStatus({
         body: { hash },
       });
@@ -606,7 +607,7 @@ describe("MinaTokensAPI for NFT", () => {
       expect(hash).toBeDefined();
       if (!hash) return;
       await api.waitForTransaction(hash);
-      await new Promise((resolve) => setTimeout(resolve, 30000));
+      await sleep(30000);
       const status = await api.txStatus({
         body: { hash },
       });
@@ -771,7 +772,7 @@ describe("MinaTokensAPI for NFT", () => {
       console.log("Tx status:", hash, status?.data);
       expect(status?.data?.status).toBe("applied");
     }
-    await new Promise((resolve) => setTimeout(resolve, 60000));
+    await sleep(60000);
     for (const nftAddress of nftAddresses) {
       const info =
         // IMPORTANT to call it after the tx is included into block to get NFT indexed on https://devnet.minanft.io/
@@ -854,7 +855,7 @@ describe("MinaTokensAPI for NFT", () => {
       console.log("Tx status:", hash, status?.data);
       expect(status?.data?.status).toBe("applied");
     }
-    await new Promise((resolve) => setTimeout(resolve, 60000));
+    await sleep(60000);
     for (const nftAddress of nftAddresses) {
       const info =
         // IMPORTANT to call it after the tx is included into block to get NFT indexed on https://devnet.minanft.io/
@@ -872,3 +873,7 @@ describe("MinaTokensAPI for NFT", () => {
     step = "batchSell";
   });
 });
+
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
