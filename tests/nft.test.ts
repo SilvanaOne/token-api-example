@@ -35,12 +35,12 @@ const client = new Client({
 
 const exampleNftAddress =
   chain === "zeko"
-    ? "B62qpeErx1XXMJae5Bu7Tjt4ie8V4ZCjwfJ8CEp4xsgC5sEa9dcdgJL"
+    ? "B62qmma6ijpWZ4dURYH2xDL3ue2f9fcafz5tvBZCsBw4XmaV16KDJNe"
     : "B62qiwSqsfS8jGszg6HfGBzSe2CuQbnqGBVJcSvQncUJJrJSVwvMD8x";
 
 const exampleCollectionAddress =
   chain === "zeko"
-    ? "B62qqhJUd1KhoYppyCyBxMKhGsdFQ2EyFmem6TykU3C7zHDvikMGBiX"
+    ? "B62qisXk3LaFKRSmpFU6GVPfcoQsAu1K3iVM2DC9U18XJSb8XtnN6cD"
     : "B62qrfuCkQpEJxgLnACWAp7q2hMVYgneQn8FHMt23JUX87rjXjVuyyK";
 
 describe("MinaTokensAPI for NFT", () => {
