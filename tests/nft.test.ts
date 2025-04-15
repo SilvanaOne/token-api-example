@@ -16,7 +16,7 @@ API: https://docs.zkcloudworker.com/OpenAPI/launch-nft-collection
 */
 
 type Chain = "zeko" | "devnet" | "mainnet";
-const chain: Chain = "zeko" as Chain;
+const chain: Chain = "devnet" as Chain;
 const soulBound = false as boolean; // set to true to mint soulbound NFTs
 
 api.config({
@@ -36,12 +36,12 @@ const client = new Client({
 const exampleNftAddress =
   chain === "zeko"
     ? "B62qmma6ijpWZ4dURYH2xDL3ue2f9fcafz5tvBZCsBw4XmaV16KDJNe"
-    : "B62qiwSqsfS8jGszg6HfGBzSe2CuQbnqGBVJcSvQncUJJrJSVwvMD8x";
+    : "B62qmDBN6M9WttVwrke92ebumkeBQvXuN11dGUKLTwLd7pvwSAJhCN3";
 
 const exampleCollectionAddress =
   chain === "zeko"
     ? "B62qisXk3LaFKRSmpFU6GVPfcoQsAu1K3iVM2DC9U18XJSb8XtnN6cD"
-    : "B62qrfuCkQpEJxgLnACWAp7q2hMVYgneQn8FHMt23JUX87rjXjVuyyK";
+    : "B62qkRw5We6g8ywCvAq3teAMgSYzREqMcisT3dwht2W4swA9ha89mvQ";
 
 describe("MinaTokensAPI for NFT", () => {
   let collectionAddress: string | undefined = undefined;
