@@ -47,7 +47,7 @@ describe("MinaTokensAPI for NFT", () => {
   let collectionAddress: string | undefined = undefined;
   let nftAddress: string | undefined = undefined;
   const users = TEST_ACCOUNTS;
-  const creator = users[0];
+  const creator = users[7];
   const nftHolders = users.slice(1);
   const nftAddresses: string[] = [];
 

@@ -17,7 +17,7 @@
   },
   "packageManager": "yarn@4.9.1",
   "dependencies": {
-    "@silvana-one/api": "^1.0.1",
+    "@silvana-one/api": "^1.0.9",
     "mina-signer": "^3.0.7",
     "tslib": "^2.8.1",
     "unique-names-generator": "^4.7.1"
