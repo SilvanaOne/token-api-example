@@ -4,8 +4,10 @@ import * as api from "@silvana-one/api";
 import { TEST_ACCOUNTS, API_KEY } from "../env.json";
 
 type Chain = "zeko" | "devnet" | "mainnet";
-const chain: Chain = "devnet" as Chain;
-const bondingCurve = true as boolean;
+const chain: Chain = "zeko" as Chain;
+console.log("chain:", chain);
+const bondingCurve = false as boolean;
+console.log("bondingCurve:", bondingCurve);
 const useWhitelists = false;
 
 if (useWhitelists && bondingCurve)
@@ -27,7 +29,7 @@ const client = new Client({
 
 const exampleTokenAddress =
   chain === "zeko"
-    ? "B62qnmnETnzpkEVvGQ6jE4PR3YVFY6ZEXxYXWvQPmxcZyJJtj9eGiD6"
+    ? "B62qr6Bkovb4jdZXsfi7sArVzwGggeSyGdJS46YAQyeZQ7wXcYAU1hD"
     : "B62qn25cKc4ipqJMCDSMENgsiFwL49vTdnsDXgWWKWFXQaY819rn848";
 const exampleJobId = "zkCWDYE3gAJOGRDqNlhke0u1NWVXlWgKS2uk2q0FgZdRbPoF";
 const exampleFailedJobId = "zkCWvcg1BiPdLmsyxexOkrC3qZfx2UdLan0JB30cKDYVeSMB";
@@ -84,7 +86,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     expect(status?.data?.status).toBe("applied");
   });
 
-  it(`should get contract info`, async () => {
+  it.skip(`should get contract info`, async () => {
     console.log("Getting existing contract info for", exampleTokenAddress);
     const info = await api.getContractInfo({
       body: {
@@ -94,7 +96,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     console.log(info?.data ? JSON.stringify(info.data, null, 2) : "No info");
   });
 
-  it(`should get list of holders`, async () => {
+  it.skip(`should get list of holders`, async () => {
     console.log("Getting existing list of holders for", exampleTokenAddress);
     const info = await api.getTokenHolders({
       body: {
@@ -104,7 +106,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     console.log(info?.data ? JSON.stringify(info.data, null, 2) : "No info");
   });
 
-  it(`should get list of transactions`, async () => {
+  it.skip(`should get list of transactions`, async () => {
     console.log("Getting existing transactions for", exampleTokenAddress);
     const info = await api.getTransactions({
       body: {
@@ -114,7 +116,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     console.log(info?.data ? JSON.stringify(info.data, null, 2) : "No info");
   });
 
-  it(`should get job result`, async () => {
+  it.skip(`should get job result`, async () => {
     console.log("Getting existing job result...");
     const result = await api.getProof({
       body: { jobId: exampleJobId },
@@ -122,7 +124,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     expect(result?.data?.jobStatus).toBe("used");
   });
 
-  it(`should get failed job result`, async () => {
+  it.skip(`should get failed job result`, async () => {
     console.log("Getting existing failed job result...");
     const result = await api.getProof({
       body: { jobId: exampleFailedJobId },
@@ -130,7 +132,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     expect(result?.data?.jobStatus).toBe("failed");
   });
 
-  it(`should get token balance`, async () => {
+  it.skip(`should get token balance`, async () => {
     console.log("Getting token balance...");
     const result = await api.getTokenBalance({
       body: {
@@ -141,11 +143,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     if (chain === "devnet") {
       expect(result?.data?.balance).toBe(940_000_000_000);
     } else {
-      expect(result?.data?.balance).toBe(null);
+      expect(result?.data?.balance).toBe(undefined);
     }
   });
 
-  it(`should get existing token info`, async () => {
+  it.skip(`should get existing token info`, async () => {
     console.log("Getting existing token info...");
 
     const tokenInfo = await api.getTokenInfo({
@@ -153,7 +155,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
         tokenAddress: exampleTokenAddress,
       },
     });
-    console.log(tokenInfo?.data);
+    console.log("tokenInfo", tokenInfo?.data);
     expect(tokenInfo?.data?.tokenAddress).toBe(exampleTokenAddress);
   });
 

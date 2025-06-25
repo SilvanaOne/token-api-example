@@ -16,7 +16,7 @@ API: https://docs.zkcloudworker.com/OpenAPI/launch-nft-collection
 */
 
 type Chain = "zeko" | "devnet" | "mainnet";
-const chain: Chain = "devnet" as Chain;
+const chain: Chain = "zeko" as Chain;
 const soulBound = false as boolean; // set to true to mint soulbound NFTs
 
 api.config({
