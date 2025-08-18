@@ -1,7 +1,24 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, it } from "node:test";
+import assert from "node:assert";
 import Client from "mina-signer";
 import * as api from "@silvana-one/api";
-import { TEST_ACCOUNTS, API_KEY } from "../env.json";
+import "dotenv/config";
+
+const API_KEY = process.env.API_KEY;
+if (!API_KEY) {
+  throw new Error("API_KEY not found in environment variables");
+}
+
+const TEST_ACCOUNTS = Array.from({ length: 25 }, (_, i) => {
+  const privateKey = process.env[`TEST_ACCOUNT_${i + 1}_PRIVATE_KEY`];
+  const publicKey = process.env[`TEST_ACCOUNT_${i + 1}_PUBLIC_KEY`];
+  if (!privateKey || !publicKey) {
+    throw new Error(
+      `TEST_ACCOUNT_${i + 1} keys not found in environment variables`
+    );
+  }
+  return { privateKey, publicKey };
+});
 
 type Chain = "zeko" | "devnet" | "mainnet";
 const chain: Chain = "zeko" as Chain;
@@ -83,7 +100,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     const status = await api.txStatus({
       body: { hash: exampleHash },
     });
-    expect(status?.data?.status).toBe("applied");
+    assert.strictEqual(status?.data?.status, "applied");
   });
 
   it.skip(`should get contract info`, async () => {
@@ -121,7 +138,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     const result = await api.getProof({
       body: { jobId: exampleJobId },
     });
-    expect(result?.data?.jobStatus).toBe("used");
+    assert.strictEqual(result?.data?.jobStatus, "used");
   });
 
   it.skip(`should get failed job result`, async () => {
@@ -129,7 +146,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     const result = await api.getProof({
       body: { jobId: exampleFailedJobId },
     });
-    expect(result?.data?.jobStatus).toBe("failed");
+    assert.strictEqual(result?.data?.jobStatus, "failed");
   });
 
   it.skip(`should get token balance`, async () => {
@@ -141,9 +158,9 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       },
     });
     if (chain === "devnet") {
-      expect(result?.data?.balance).toBe(940_000_000_000);
+      assert.strictEqual(result?.data?.balance, 940_000_000_000);
     } else {
-      expect(result?.data?.balance).toBe(undefined);
+      assert.strictEqual(result?.data?.balance, undefined);
     }
   });
 
@@ -156,7 +173,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       },
     });
     console.log("tokenInfo", tokenInfo?.data);
-    expect(tokenInfo?.data?.tokenAddress).toBe(exampleTokenAddress);
+    assert.strictEqual(tokenInfo?.data?.tokenAddress, exampleTokenAddress);
   });
 
   it.skip(`should get existing NFT info`, async () => {
@@ -168,10 +185,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
         nftAddress: exampleNFTAddress,
       },
     });
-    expect(nftInfo?.data?.contractAddress).toBe(
+    assert.strictEqual(
+      nftInfo?.data?.contractAddress,
       "B62qs2NthDuxAT94tTFg6MtuaP1gaBxTZyNv9D3uQiQciy1VsaimNFT"
     );
-    expect(nftInfo?.data?.nftAddress).toBe(exampleNFTAddress);
+    assert.strictEqual(nftInfo?.data?.nftAddress, exampleNFTAddress);
   });
 
   it.skip(`should call faucet`, async () => {
@@ -235,11 +253,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     if (!proveTx?.jobId) throw new Error("No jobId");
 
     const proofs = await api.waitForProofs(proveTx?.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) throw new Error("No hash");
     await api.waitForTransaction(hash);
     await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -251,11 +269,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
   });
 
   it(`should mint token`, async () => {
-    expect(tokenAddress).toBeDefined();
+    assert.ok(tokenAddress, "tokenAddress should be defined");
     if (!tokenAddress) {
       throw new Error("Token not deployed");
     }
-    expect(step).toBe("deployed");
+    assert.strictEqual(step, "deployed");
 
     console.log("Building mint transaction...");
 
@@ -288,11 +306,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     if (!proveTx?.jobId) throw new Error("No jobId");
 
     const proofs = await api.waitForProofs(proveTx.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) return;
     await api.waitForTransaction(hash);
     const tokenInfo = await api.getTokenInfo({
@@ -309,18 +327,19 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of token holder 0:`, balance);
-    expect(balance?.balance).toBe(
+    assert.strictEqual(
+      balance?.balance,
       1_000_000_000_000 + (bondingCurve ? 300_000_000_000_000 : 0)
     );
   });
 
   if (bondingCurve) {
     it(`should redeem token`, async () => {
-      expect(tokenAddress).toBeDefined();
+      assert.ok(tokenAddress, "tokenAddress should be defined");
       if (!tokenAddress) {
         throw new Error("Token not deployed");
       }
-      expect(step).toBe("minted");
+      assert.strictEqual(step, "minted");
       await new Promise((resolve) => setTimeout(resolve, 30000));
 
       console.log("Building redeem transaction...");
@@ -353,11 +372,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       if (!proveTx?.jobId) throw new Error("No jobId");
 
       const proofs = await api.waitForProofs(proveTx.jobId);
-      expect(proofs).toBeDefined();
+      assert.ok(proofs, "proofs should be defined");
       if (!proofs) throw new Error("No proofs");
-      expect(proofs.length).toBe(1);
+      assert.strictEqual(proofs.length, 1);
       const hash = proofs[0];
-      expect(hash).toBeDefined();
+      assert.ok(hash, "hash should be defined");
       if (!hash) return;
       await api.waitForTransaction(hash);
       const tokenInfo = await api.getTokenInfo({
@@ -373,16 +392,16 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
         })
       ).data;
       console.log(`Balance of token holder 0:`, balance);
-      expect(balance?.balance).toBe(1000_000_000_000);
+      assert.strictEqual(balance?.balance, 1000_000_000_000);
     });
   }
 
   it(`should bid`, async () => {
-    expect(tokenAddress).toBeDefined();
+    assert.ok(tokenAddress, "tokenAddress should be defined");
     if (!tokenAddress) {
       throw new Error("Token not deployed");
     }
-    expect(step).toBe("minted");
+    assert.strictEqual(step, "minted");
 
     console.log("Building bid transaction...");
 
@@ -418,11 +437,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     ).data;
     if (!proveTx?.jobId) throw new Error("No jobId");
     const proofs = await api.waitForProofs(proveTx.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) return;
     await api.waitForTransaction(hash);
     console.log("Bid contract address:", bidAddress);
@@ -435,18 +454,18 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of ${bidAddress}:`, balance);
-    expect(balance?.balance).toBe(10_000_000_000);
+    assert.strictEqual(balance?.balance, 10_000_000_000);
   });
 
   it(`should sell token`, async () => {
-    expect(tokenAddress).toBeDefined();
+    assert.ok(tokenAddress, "tokenAddress should be defined");
     if (!tokenAddress) {
       throw new Error("Token not deployed");
     }
     if (!bidAddress) {
       throw new Error("Token not bid");
     }
-    expect(step).toBe("bid");
+    assert.strictEqual(step, "bid");
 
     console.log("Building sell transaction...");
 
@@ -477,11 +496,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     if (!proveTx) throw new Error("No proveTx");
     if (!proveTx.jobId) throw new Error("No jobId");
     const proofs = await api.waitForProofs(proveTx.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) return;
     await api.waitForTransaction(hash);
     step = "sold";
@@ -503,16 +522,16 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of buyer:`, balanceBuyer);
-    expect(balance?.balance).toBe(995_000_000_000);
-    expect(balanceBuyer?.balance).toBe(5_000_000_000);
+    assert.strictEqual(balance?.balance, 995_000_000_000);
+    assert.strictEqual(balanceBuyer?.balance, 5_000_000_000);
   });
 
   it(`should offer token for sale`, async () => {
-    expect(tokenAddress).toBeDefined();
+    assert.ok(tokenAddress, "tokenAddress should be defined");
     if (!tokenAddress) {
       throw new Error("Token not deployed");
     }
-    expect(step).toBe("sold");
+    assert.strictEqual(step, "sold");
 
     console.log("Building offer transaction...");
 
@@ -521,8 +540,8 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
         body: {
           sender: tokenHolders[0].publicKey,
           tokenAddress,
-          amount: 500_000_000_000,
-          price: 10_000_000_000,
+          amount: 5_000_000_000,
+          price: 1_000_000_000,
           whitelist: useWhitelists ? whitelist : undefined,
         },
       })
@@ -549,11 +568,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     if (!proveTx) throw new Error("No proveTx");
     if (!proveTx.jobId) throw new Error("No jobId");
     const proofs = await api.waitForProofs(proveTx.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) return;
     await api.waitForTransaction(hash);
     const tokenInfo = await api.getTokenInfo({
@@ -571,7 +590,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of ${tokenHolders[0].publicKey}:`, balance);
-    expect(balance?.balance).toBe(495_000_000_000);
+    assert.strictEqual(balance?.balance, 990_000_000_000);
     const balanceOffer = (
       await api.getTokenBalance({
         body: {
@@ -581,18 +600,18 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of offer ${offerAddress}:`, balanceOffer);
-    expect(balanceOffer?.balance).toBe(500_000_000_000);
+    assert.strictEqual(balanceOffer?.balance, 5_000_000_000);
   });
 
   it(`should buy token`, async () => {
-    expect(tokenAddress).toBeDefined();
+    assert.ok(tokenAddress, "tokenAddress should be defined");
     if (!tokenAddress) {
       throw new Error("Token not deployed");
     }
     if (!offerAddress) {
       throw new Error("Token not offered");
     }
-    expect(step).toBe("offered");
+    assert.strictEqual(step, "offered");
     const balanceBefore = (
       await api.getTokenBalance({
         body: {
@@ -613,7 +632,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
           sender: tokenHolders[1].publicKey,
           tokenAddress,
           offerAddress,
-          amount: 10_000_000_000,
+          amount: 1_000_000_000,
         },
       })
     ).data;
@@ -635,11 +654,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     if (!proveTx) throw new Error("No proveTx");
     if (!proveTx.jobId) throw new Error("No jobId");
     const proofs = await api.waitForProofs(proveTx.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) return;
     await api.waitForTransaction(hash);
     const tokenInfo = await api.getTokenInfo({
@@ -664,9 +683,9 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
         },
       })
     ).data;
-    expect(balance?.balance).toBe(10_000_000_000);
+    assert.strictEqual(balance?.balance, 1_000_000_000);
     console.log(`Balance of offer:`, balanceOffer);
-    expect(balanceOffer?.balance).toBe(490_000_000_000);
+    assert.strictEqual(balanceOffer?.balance, 4_000_000_000);
     const balanceAfter = (
       await api.getTokenBalance({
         body: {
@@ -686,14 +705,14 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
   });
 
   it(`should withdraw token`, async () => {
-    expect(tokenAddress).toBeDefined();
+    assert.ok(tokenAddress, "tokenAddress should be defined");
     if (!tokenAddress) {
       throw new Error("Token not deployed");
     }
     if (!offerAddress) {
       throw new Error("Token not offered");
     }
-    expect(step).toBe("bought");
+    assert.strictEqual(step, "bought");
 
     console.log("Building withdraw transaction...");
 
@@ -703,7 +722,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
           sender: tokenHolders[0].publicKey,
           tokenAddress,
           offerAddress,
-          amount: 490_000_000_000,
+          amount: 4_000_000_000,
         },
       })
     ).data;
@@ -724,11 +743,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     if (!proveTx) throw new Error("No proveTx");
     if (!proveTx.jobId) throw new Error("No jobId");
     const proofs = await api.waitForProofs(proveTx.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) return;
     await api.waitForTransaction(hash);
     const tokenInfo = await api.getTokenInfo({
@@ -745,7 +764,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of token holder 0:`, balance);
-    expect(balance?.balance).toBe(985_000_000_000);
+    assert.strictEqual(balance?.balance, 994_000_000_000);
     const balanceOffer = (
       await api.getTokenBalance({
         body: {
@@ -755,15 +774,15 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of offer:`, balanceOffer);
-    expect(balanceOffer?.balance).toBe(0);
+    assert.strictEqual(balanceOffer?.balance, 0);
   });
 
   it(`should transfer token`, async () => {
-    expect(tokenAddress).toBeDefined();
+    assert.ok(tokenAddress, "tokenAddress should be defined");
     if (!tokenAddress) {
       throw new Error("Token not deployed");
     }
-    expect(step).toBe("withdrawn");
+    assert.strictEqual(step, "withdrawn");
 
     console.log("Building transfer transaction...");
 
@@ -795,11 +814,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     if (!proveTx) throw new Error("No proveTx");
     if (!proveTx.jobId) throw new Error("No jobId");
     const proofs = await api.waitForProofs(proveTx.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) return;
     await api.waitForTransaction(hash);
     const tokenInfo = await api.getTokenInfo({
@@ -816,7 +835,7 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of token holder 0:`, balance);
-    expect(balance?.balance).toBe(935_000_000_000);
+    assert.strictEqual(balance?.balance, 944_000_000_000);
     const balanceTransfer = (
       await api.getTokenBalance({
         body: {
@@ -826,19 +845,19 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of token holder 2:`, balanceTransfer);
-    expect(balanceTransfer?.balance).toBe(50_000_000_000);
+    assert.strictEqual(balanceTransfer?.balance, 50_000_000_000);
   });
 
   it(`should airdrop token`, async () => {
-    expect(tokenAddress).toBeDefined();
+    assert.ok(tokenAddress, "tokenAddress should be defined");
     if (!tokenAddress) {
       throw new Error("Token not deployed");
     }
-    expect(step).toBe("transferred");
+    assert.strictEqual(step, "transferred");
 
     console.log("Building airdrop transaction...");
 
-    const recipients = [1, 2, 3].map((i) => ({
+    const recipients = [1, 2, 3].map(() => ({
       address: client.genKeys().publicKey,
       amount: 10_000_000_000,
     }));
@@ -873,11 +892,11 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
     if (!proveTx) throw new Error("No proveTx");
     if (!proveTx.jobId) throw new Error("No jobId");
     const proofs = await api.waitForProofs(proveTx.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(3);
+    assert.strictEqual(proofs.length, 3);
     for (const hash of proofs) {
-      expect(hash).toBeDefined();
+      assert.ok(hash, "hash should be defined");
       if (!hash) return;
       await api.waitForTransaction(hash);
     }
@@ -895,6 +914,6 @@ describe("MinaTokensAPI for Fungible Tokens", () => {
       })
     ).data;
     console.log(`Balance of token holder 0:`, balance);
-    expect(balance?.balance).toBe(905_000_000_000);
+    assert.strictEqual(balance?.balance, 914_000_000_000);
   });
 });

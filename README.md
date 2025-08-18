@@ -96,7 +96,7 @@ To use the MinaTokens API example, install it:
 
 ```sh
 git clone https://github.com/zkcloudworker/tokens-api-example
-yarn
+npm i
 ```
 
 ## Getting Started
@@ -333,7 +333,8 @@ The **MINA Custom Token Launchpad on zkCloudWorker** is designed to simplify the
 ### Run tests on Devnet
 
 ```sh
-yarn test
+npm run token
+npm run nft
 ```
 
 ## Logs

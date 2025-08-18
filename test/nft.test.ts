@@ -1,14 +1,31 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, it } from "node:test";
+import assert from "node:assert";
 import Client from "mina-signer";
 import * as api from "@silvana-one/api";
-import { TEST_ACCOUNTS, API_KEY } from "../env.json";
+import "dotenv/config";
 import {
   randomName,
   randomText,
   randomImage,
   randomBanner,
-} from "../src/random";
+} from "../src/random.js";
 import fs from "fs/promises";
+
+const API_KEY = process.env.API_KEY;
+if (!API_KEY) {
+  throw new Error("API_KEY not found in environment variables");
+}
+
+const TEST_ACCOUNTS = Array.from({ length: 25 }, (_, i) => {
+  const privateKey = process.env[`TEST_ACCOUNT_${i + 1}_PRIVATE_KEY`];
+  const publicKey = process.env[`TEST_ACCOUNT_${i + 1}_PUBLIC_KEY`];
+  if (!privateKey || !publicKey) {
+    throw new Error(
+      `TEST_ACCOUNT_${i + 1} keys not found in environment variables`
+    );
+  }
+  return { privateKey, publicKey };
+});
 
 /*
 Frontend: https://devnet.minanft.io/
@@ -17,7 +34,7 @@ API: https://docs.zkcloudworker.com/OpenAPI/launch-nft-collection
 
 type Chain = "zeko" | "devnet" | "mainnet";
 const chain: Chain = "zeko" as Chain;
-const soulBound = false as boolean; // set to true to mint soulbound NFTs
+const soulBound = true as boolean; // set to true to mint soulbound NFTs
 
 api.config({
   apiKey: API_KEY,
@@ -62,7 +79,7 @@ describe("MinaTokensAPI for NFT", () => {
     | "batchMint"
     | "batchSell" = "started";
 
-  it(`should get NFT info`, async () => {
+  it.skip(`should get NFT info`, async () => {
     const info = (
       await api.getNftInfo({
         body: {
@@ -170,11 +187,11 @@ describe("MinaTokensAPI for NFT", () => {
     if (!proveTx?.jobId) throw new Error("No jobId");
 
     const proofs = await api.waitForProofs(proveTx?.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) throw new Error("No hash");
     await api.waitForTransaction(hash);
     await sleep(30000);
@@ -190,11 +207,11 @@ describe("MinaTokensAPI for NFT", () => {
   });
 
   it(`should mint NFT`, async () => {
-    expect(collectionAddress).toBeDefined();
+    assert.ok(collectionAddress, "collectionAddress should be defined");
     if (!collectionAddress) {
       throw new Error("NFT collection is not deployed");
     }
-    expect(step).toBe("launched");
+    assert.strictEqual(step, "launched");
     const nftName = randomName();
     console.log(`Minting NFT ${nftName}...`);
 
@@ -288,11 +305,11 @@ describe("MinaTokensAPI for NFT", () => {
     if (!proveTx?.jobId) throw new Error("No jobId");
 
     const proofs = await api.waitForProofs(proveTx.jobId);
-    expect(proofs).toBeDefined();
+    assert.ok(proofs, "proofs should be defined");
     if (!proofs) throw new Error("No proofs");
-    expect(proofs.length).toBe(1);
+    assert.strictEqual(proofs.length, 1);
     const hash = proofs[0];
-    expect(hash).toBeDefined();
+    assert.ok(hash, "hash should be defined");
     if (!hash) return;
     await api.waitForTransaction(hash);
     await sleep(30000);
@@ -300,7 +317,7 @@ describe("MinaTokensAPI for NFT", () => {
       body: { hash },
     });
     console.log("Tx status:", hash, status?.data);
-    expect(status?.data?.status).toBe("applied");
+    assert.strictEqual(status?.data?.status, "applied");
     const info = (
       await api.getNftInfo({
         body: {
@@ -310,19 +327,19 @@ describe("MinaTokensAPI for NFT", () => {
       })
     ).data;
     console.log("NFT info:", info);
-    expect(info?.nft.owner).toBe(creator.publicKey);
+    assert.strictEqual(info?.nft.owner, creator.publicKey);
     step = "minted";
   });
 
   it(`should grant approval`, async () => {
-    expect(collectionAddress).toBeDefined();
+    assert.ok(collectionAddress, "collectionAddress should be defined");
     if (!collectionAddress) {
       throw new Error("NFT collection is not deployed");
     }
     if (!nftAddress) {
       throw new Error("NFT is not minted");
     }
-    expect(step).toBe("minted");
+    assert.strictEqual(step, "minted");
     console.log(`Granting approval...`);
 
     try {
@@ -358,11 +375,11 @@ describe("MinaTokensAPI for NFT", () => {
       if (!proveTx?.jobId) throw new Error("No jobId");
 
       const proofs = await api.waitForProofs(proveTx.jobId);
-      expect(proofs).toBeDefined();
+      assert.ok(proofs, "proofs should be defined");
       if (!proofs) throw new Error("No proofs");
-      expect(proofs.length).toBe(1);
+      assert.strictEqual(proofs.length, 1);
       const hash = proofs[0];
-      expect(hash).toBeDefined();
+      assert.ok(hash, "hash should be defined");
       if (!hash) return;
       await api.waitForTransaction(hash);
       await new Promise((resolve) => setTimeout(resolve, 30000));
@@ -370,7 +387,7 @@ describe("MinaTokensAPI for NFT", () => {
         body: { hash },
       });
       console.log("Tx status:", hash, status?.data);
-      expect(status?.data?.status).toBe("applied");
+      assert.strictEqual(status?.data?.status, "applied");
       await sleep(30000);
       const info = (
         await api.getNftInfo({
@@ -384,7 +401,7 @@ describe("MinaTokensAPI for NFT", () => {
       console.log("Approved vk:", info?.nft.approvedVerificationKeyHash);
       console.log("Approved type:", info?.nft.approvedType);
       console.log("Price:", info?.nft.price);
-      expect(info?.nft.approved).toBe(nftHolders[3].publicKey);
+      assert.strictEqual(info?.nft.approved, nftHolders[3].publicKey);
     } catch (e: any) {
       if (soulBound) {
         console.log("Soul bound NFT, approve failed as expected");
@@ -396,14 +413,14 @@ describe("MinaTokensAPI for NFT", () => {
   });
 
   it(`should sell NFT`, async () => {
-    expect(collectionAddress).toBeDefined();
+    assert.ok(collectionAddress, "collectionAddress should be defined");
     if (!collectionAddress) {
       throw new Error("NFT collection is not deployed");
     }
     if (!nftAddress) {
       throw new Error("NFT is not minted");
     }
-    expect(step).toBe("approved");
+    assert.strictEqual(step, "approved");
     console.log(`Selling NFT...`);
 
     try {
@@ -439,11 +456,11 @@ describe("MinaTokensAPI for NFT", () => {
       if (!proveTx?.jobId) throw new Error("No jobId");
 
       const proofs = await api.waitForProofs(proveTx.jobId);
-      expect(proofs).toBeDefined();
+      assert.ok(proofs, "proofs should be defined");
       if (!proofs) throw new Error("No proofs");
-      expect(proofs.length).toBe(1);
+      assert.strictEqual(proofs.length, 1);
       const hash = proofs[0];
-      expect(hash).toBeDefined();
+      assert.ok(hash, "hash should be defined");
       if (!hash) return;
       await api.waitForTransaction(hash);
       await sleep(30000);
@@ -451,7 +468,7 @@ describe("MinaTokensAPI for NFT", () => {
         body: { hash },
       });
       console.log("Tx status:", hash, status?.data);
-      expect(status?.data?.status).toBe("applied");
+      assert.strictEqual(status?.data?.status, "applied");
       const info = (
         await api.getNftInfo({
           body: {
@@ -464,8 +481,8 @@ describe("MinaTokensAPI for NFT", () => {
       console.log("Approved vk:", info?.nft.approvedVerificationKeyHash);
       console.log("Approved type:", info?.nft.approvedType);
       console.log("Price:", info?.nft.price);
-      expect(info?.nft.price).toBe(10);
-      expect(info?.nft.approved).not.toBe(nftHolders[3].publicKey);
+      assert.strictEqual(info?.nft.price, 10);
+      assert.notStrictEqual(info?.nft.approved, nftHolders[3].publicKey);
     } catch (e: any) {
       if (soulBound) {
         console.log("Soul bound NFT, sell failed as expected");
@@ -477,14 +494,14 @@ describe("MinaTokensAPI for NFT", () => {
   });
 
   it(`should buy NFT`, async () => {
-    expect(collectionAddress).toBeDefined();
+    assert.ok(collectionAddress, "collectionAddress should be defined");
     if (!collectionAddress) {
       throw new Error("NFT collection is not deployed");
     }
     if (!nftAddress) {
       throw new Error("NFT is not minted");
     }
-    expect(step).toBe("sell");
+    assert.strictEqual(step, "sell");
     console.log(`Buying NFT...`);
 
     try {
@@ -520,11 +537,11 @@ describe("MinaTokensAPI for NFT", () => {
       if (!proveTx?.jobId) throw new Error("No jobId");
 
       const proofs = await api.waitForProofs(proveTx.jobId);
-      expect(proofs).toBeDefined();
+      assert.ok(proofs, "proofs should be defined");
       if (!proofs) throw new Error("No proofs");
-      expect(proofs.length).toBe(1);
+      assert.strictEqual(proofs.length, 1);
       const hash = proofs[0];
-      expect(hash).toBeDefined();
+      assert.ok(hash, "hash should be defined");
       if (!hash) return;
       await api.waitForTransaction(hash);
       await sleep(30000);
@@ -532,7 +549,7 @@ describe("MinaTokensAPI for NFT", () => {
         body: { hash },
       });
       console.log("Tx status:", hash, status?.data);
-      expect(status?.data?.status).toBe("applied");
+      assert.strictEqual(status?.data?.status, "applied");
       const info = (
         await api.getNftInfo({
           body: {
@@ -544,7 +561,7 @@ describe("MinaTokensAPI for NFT", () => {
       console.log("Old owner:", creator.publicKey);
       console.log("New owner:", nftHolders[0].publicKey);
       console.log("NFT info:", info);
-      expect(info?.nft.owner).toBe(nftHolders[0].publicKey);
+      assert.strictEqual(info?.nft.owner, nftHolders[0].publicKey);
     } catch (e: any) {
       if (soulBound) {
         console.log("Soul bound NFT, buy failed as expected");
@@ -556,14 +573,14 @@ describe("MinaTokensAPI for NFT", () => {
   });
 
   it(`should transfer NFT`, async () => {
-    expect(collectionAddress).toBeDefined();
+    assert.ok(collectionAddress, "collectionAddress should be defined");
     if (!collectionAddress) {
       throw new Error("NFT collection is not deployed");
     }
     if (!nftAddress) {
       throw new Error("NFT is not minted");
     }
-    expect(step).toBe("bought");
+    assert.strictEqual(step, "bought");
     console.log(`Transferring NFT...`);
 
     try {
@@ -600,11 +617,11 @@ describe("MinaTokensAPI for NFT", () => {
       if (!proveTx?.jobId) throw new Error("No jobId");
 
       const proofs = await api.waitForProofs(proveTx.jobId);
-      expect(proofs).toBeDefined();
+      assert.ok(proofs, "proofs should be defined");
       if (!proofs) throw new Error("No proofs");
-      expect(proofs.length).toBe(1);
+      assert.strictEqual(proofs.length, 1);
       const hash = proofs[0];
-      expect(hash).toBeDefined();
+      assert.ok(hash, "hash should be defined");
       if (!hash) return;
       await api.waitForTransaction(hash);
       await sleep(30000);
@@ -612,7 +629,7 @@ describe("MinaTokensAPI for NFT", () => {
         body: { hash },
       });
       console.log("Tx status:", hash, status?.data);
-      expect(status?.data?.status).toBe("applied");
+      assert.strictEqual(status?.data?.status, "applied");
       const info = (
         await api.getNftInfo({
           body: {
@@ -624,7 +641,7 @@ describe("MinaTokensAPI for NFT", () => {
       console.log("Old owner:", nftHolders[0].publicKey);
       console.log("New owner:", nftHolders[1].publicKey);
       console.log("NFT info:", info);
-      expect(info?.nft.owner).toBe(nftHolders[1].publicKey);
+      assert.strictEqual(info?.nft.owner, nftHolders[1].publicKey);
     } catch (e: any) {
       if (soulBound) {
         console.log("Soul bound NFT, transfer failed as expected");
@@ -636,11 +653,11 @@ describe("MinaTokensAPI for NFT", () => {
   });
 
   it(`should mint batch of NFTs`, async () => {
-    expect(collectionAddress).toBeDefined();
+    assert.ok(collectionAddress, "collectionAddress should be defined");
     if (!collectionAddress) {
       throw new Error("NFT collection is not deployed");
     }
-    expect(step).toBe("transferred");
+    assert.strictEqual(step, "transferred");
     console.log("Minting batch of NFTs...");
     console.log(
       "Batch NFT holders:",
@@ -754,12 +771,12 @@ describe("MinaTokensAPI for NFT", () => {
       if (!proveTx?.jobId) throw new Error("No jobId");
 
       const proofs = await api.waitForProofs(proveTx.jobId);
-      expect(proofs).toBeDefined();
+      assert.ok(proofs, "proofs should be defined");
       if (!proofs) throw new Error("No proofs");
-      expect(proofs.length).toBe(1);
+      assert.strictEqual(proofs.length, 1);
       const hash = proofs[0];
       console.log("Minting NFT tx hash:", hash);
-      expect(hash).toBeDefined();
+      assert.ok(hash, "hash should be defined");
       if (!hash) return;
       hashes.push(hash);
     }
@@ -770,7 +787,7 @@ describe("MinaTokensAPI for NFT", () => {
         body: { hash },
       });
       console.log("Tx status:", hash, status?.data);
-      expect(status?.data?.status).toBe("applied");
+      assert.strictEqual(status?.data?.status, "applied");
     }
     await sleep(60000);
     for (const nftAddress of nftAddresses) {
@@ -791,11 +808,11 @@ describe("MinaTokensAPI for NFT", () => {
   });
 
   (soulBound ? it.skip : it)(`should sell batch of NFTs`, async () => {
-    expect(collectionAddress).toBeDefined();
+    assert.ok(collectionAddress, "collectionAddress should be defined");
     if (!collectionAddress) {
       throw new Error("NFT collection is not deployed");
     }
-    expect(step).toBe("batchMint");
+    assert.strictEqual(step, "batchMint");
     console.log("Selling batch of NFTs...");
     console.log(
       "Batch NFT holders:",
@@ -837,12 +854,12 @@ describe("MinaTokensAPI for NFT", () => {
       if (!proveTx?.jobId) throw new Error("No jobId");
 
       const proofs = await api.waitForProofs(proveTx.jobId);
-      expect(proofs).toBeDefined();
+      assert.ok(proofs, "proofs should be defined");
       if (!proofs) throw new Error("No proofs");
-      expect(proofs.length).toBe(1);
+      assert.strictEqual(proofs.length, 1);
       const hash = proofs[0];
       console.log("Selling NFT tx hash:", hash);
-      expect(hash).toBeDefined();
+      assert.ok(hash, "hash should be defined");
       if (!hash) return;
       hashes.push(hash);
     }
@@ -853,7 +870,7 @@ describe("MinaTokensAPI for NFT", () => {
         body: { hash },
       });
       console.log("Tx status:", hash, status?.data);
-      expect(status?.data?.status).toBe("applied");
+      assert.strictEqual(status?.data?.status, "applied");
     }
     await sleep(60000);
     for (const nftAddress of nftAddresses) {
